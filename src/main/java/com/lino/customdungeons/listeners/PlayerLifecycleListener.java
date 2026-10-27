@@ -5,6 +5,7 @@ import com.lino.customdungeons.core.DungeonInstance;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.Optional;
@@ -14,6 +15,14 @@ public class PlayerLifecycleListener implements Listener {
 
     public PlayerLifecycleListener(CustomDungeons plugin) {
         this.plugin = plugin;
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        if (plugin.getDungeonManager().hasOfflineRestore(player.getUniqueId())) {
+            plugin.getDungeonManager().restoreOfflinePlayer(player);
+        }
     }
 
     @EventHandler

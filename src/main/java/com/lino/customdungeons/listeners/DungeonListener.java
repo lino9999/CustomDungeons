@@ -112,6 +112,34 @@ public class DungeonListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerCommand(org.bukkit.event.player.PlayerCommandPreprocessEvent event) {
+        Player player = event.getPlayer();
+        Optional<DungeonInstance> instOpt = plugin.getDungeonManager().getInstance(player);
+        if (instOpt.isEmpty()) return;
+
+        if (player.hasPermission("customdungeons.admin.*")) return;
+
+        String msg = event.getMessage().toLowerCase();
+        if (msg.startsWith("/cd ") || msg.startsWith("/customdungeons ") || msg.startsWith("/dungeon ") || msg.startsWith("/dungeons ")) {
+            return;
+        }
+
+        event.setCancelled(true);
+        player.sendMessage(com.lino.customdungeons.config.Messages.colorize("&cYou cannot use server commands while inside a dungeon! Use &e/cd leave &cto exit."));
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onPlayerDropItem(org.bukkit.event.player.PlayerDropItemEvent event) {
+        Player player = event.getPlayer();
+        Optional<DungeonInstance> instOpt = plugin.getDungeonManager().getInstance(player);
+        if (instOpt.isEmpty()) return;
+
+        if (!plugin.getConfig().getBoolean("settings.allow-drop-items", false)) {
+            event.setCancelled(true);
+        }
+    }
+
     @EventHandler(priority = EventPriority.HIGH)
     public void onEntityDamage(EntityDamageByEntityEvent event) {
         if (event.getEntity() instanceof Player victim && event.getDamager() instanceof Player) {

@@ -29,6 +29,7 @@ public class DungeonInstance {
     private final Set<UUID> participants = new HashSet<>();
     private final Set<UUID> alivePlayers = new HashSet<>();
     private final Map<UUID, Integer> playerLives = new HashMap<>();
+    private final Map<UUID, PlayerSnapshot> savedSnapshots = new HashMap<>();
     private final List<LivingEntity> spawnedEntities = new ArrayList<>();
     private final RollbackManager rollbackManager = new RollbackManager();
 
@@ -57,8 +58,9 @@ public class DungeonInstance {
         Location lobby = dungeon.getLobbyLocation() != null ? dungeon.getLobbyLocation() : dungeon.getSpawnLocation();
         for (UUID uuid : participants) {
             Player p = Bukkit.getPlayer(uuid);
-            if (p != null && lobby != null) {
-                p.teleport(lobby);
+            if (p != null) {
+                savedSnapshots.put(uuid, new PlayerSnapshot(p));
+                if (lobby != null) p.teleport(lobby);
             }
         }
 
@@ -272,11 +274,19 @@ public class DungeonInstance {
         stopAllTasks();
         Location exit = dungeon.getExitLocation() != null ? dungeon.getExitLocation() : Bukkit.getWorlds().get(0).getSpawnLocation();
 
+        boolean isolated = "ISOLATED".equalsIgnoreCase(plugin.getConfig().getString("settings.inventory-handling", "ISOLATED"));
+
         for (UUID uuid : participants) {
             Player p = Bukkit.getPlayer(uuid);
-            if (p != null) {
+            PlayerSnapshot snapshot = savedSnapshots.get(uuid);
+            if (p != null && p.isOnline()) {
+                if (isolated && snapshot != null) {
+                    snapshot.restore(p);
+                }
                 p.teleport(exit);
                 p.setGameMode(GameMode.SURVIVAL);
+            } else if (isolated && snapshot != null) {
+                plugin.getDungeonManager().saveOfflineRestore(uuid, snapshot);
             }
         }
 

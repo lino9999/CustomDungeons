@@ -32,6 +32,7 @@ public class SpawnerStructure extends Structure {
             if (spawned.size() < maxEntities && location.getWorld() != null) {
                 Entity entity = location.getWorld().spawnEntity(location, entityType);
                 if (entity instanceof LivingEntity living) {
+                    living.setRemoveWhenFarAway(false);
                     spawned.add(living);
                     instance.trackEntity(living);
                 }

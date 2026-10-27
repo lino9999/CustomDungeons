@@ -22,6 +22,7 @@ public class DungeonManager {
     private final Map<String, Dungeon> dungeons = new HashMap<>();
     private final List<DungeonInstance> activeInstances = new ArrayList<>();
     private final Map<UUID, DungeonInstance> playerInstanceMap = new HashMap<>();
+    private final Map<UUID, PlayerSnapshot> offlineRestores = new HashMap<>();
 
     public DungeonManager(CustomDungeons plugin) {
         this.plugin = plugin;
@@ -129,6 +130,23 @@ public class DungeonManager {
             if (p != null) {
                 Bukkit.getPluginManager().callEvent(new DungeonLeaveEvent(p, instance));
             }
+        }
+    }
+
+    public void saveOfflineRestore(UUID uuid, PlayerSnapshot snapshot) {
+        offlineRestores.put(uuid, snapshot);
+    }
+
+    public boolean hasOfflineRestore(UUID uuid) {
+        return offlineRestores.containsKey(uuid);
+    }
+
+    public void restoreOfflinePlayer(Player player) {
+        PlayerSnapshot snapshot = offlineRestores.remove(player.getUniqueId());
+        if (snapshot != null) {
+            snapshot.restore(player);
+            Location returnLoc = snapshot.getReturnLocation() != null ? snapshot.getReturnLocation() : Bukkit.getWorlds().get(0).getSpawnLocation();
+            player.teleport(returnLoc);
         }
     }
 
