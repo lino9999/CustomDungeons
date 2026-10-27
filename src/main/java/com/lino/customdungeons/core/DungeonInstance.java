@@ -32,6 +32,9 @@ public class DungeonInstance {
     private final Map<UUID, PlayerSnapshot> savedSnapshots = new HashMap<>();
     private final List<LivingEntity> spawnedEntities = new ArrayList<>();
     private final RollbackManager rollbackManager = new RollbackManager();
+    private final List<Structure> structures = new ArrayList<>();
+    private final List<com.lino.customdungeons.puzzle.Puzzle> puzzles = new ArrayList<>();
+    private final Set<UUID> selectedLoadouts = new HashSet<>();
 
     private DungeonState state = DungeonState.WAITING;
     private int currentStageIndex = 1;
@@ -50,6 +53,13 @@ public class DungeonInstance {
             participants.add(p.getUniqueId());
             alivePlayers.add(p.getUniqueId());
             playerLives.put(p.getUniqueId(), dungeon.getLives());
+        }
+
+        for (Structure s : dungeon.getStructures()) {
+            this.structures.add(s.copy());
+        }
+        for (com.lino.customdungeons.puzzle.Puzzle p : dungeon.getPuzzles()) {
+            this.puzzles.add(p.copy());
         }
     }
 
@@ -113,7 +123,7 @@ public class DungeonInstance {
                 return;
             }
 
-            for (Structure s : dungeon.getStructures()) {
+            for (Structure s : structures) {
                 if (s instanceof SpawnerStructure spawner) {
                     spawner.tick(this);
                 }
@@ -322,15 +332,31 @@ public class DungeonInstance {
         }
         spawnedEntities.clear();
 
-        for (Structure s : dungeon.getStructures()) {
+        for (Structure s : structures) {
             s.onReset(this);
         }
-        for (com.lino.customdungeons.puzzle.Puzzle p : dungeon.getPuzzles()) {
+        for (com.lino.customdungeons.puzzle.Puzzle p : puzzles) {
             p.onReset(this);
         }
 
         rollbackManager.performRollback();
         plugin.getDungeonManager().removeInstance(this);
+    }
+
+    public boolean canSelectLoadout(Player player) {
+        return !selectedLoadouts.contains(player.getUniqueId());
+    }
+
+    public void markLoadoutSelected(Player player) {
+        selectedLoadouts.add(player.getUniqueId());
+    }
+
+    public List<Structure> getStructures() {
+        return structures;
+    }
+
+    public List<com.lino.customdungeons.puzzle.Puzzle> getPuzzles() {
+        return puzzles;
     }
 
     private void stopAllTasks() {

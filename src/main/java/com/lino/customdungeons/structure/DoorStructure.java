@@ -43,4 +43,9 @@ public class DoorStructure extends Structure {
     public void onReset(DungeonInstance instance) {
         setOpen(false);
     }
+
+    @Override
+    public Structure copy() {
+        return new DoorStructure(id, location, new java.util.ArrayList<>(blocks), openMaterial, closedMaterial);
+    }
 }

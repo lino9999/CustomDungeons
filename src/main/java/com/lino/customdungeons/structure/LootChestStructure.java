@@ -63,4 +63,9 @@ public class LootChestStructure extends Structure {
             chest.getInventory().clear();
         }
     }
+
+    @Override
+    public Structure copy() {
+        return new LootChestStructure(id, location, lootTableId, mimic);
+    }
 }

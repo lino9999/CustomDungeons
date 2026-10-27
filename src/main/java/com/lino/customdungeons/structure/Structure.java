@@ -30,4 +30,6 @@ public abstract class Structure {
     public abstract void onInteract(Player player, DungeonInstance instance);
 
     public abstract void onReset(DungeonInstance instance);
+
+    public abstract Structure copy();
 }

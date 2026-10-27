@@ -29,4 +29,6 @@ public abstract class Puzzle {
     public abstract void onInteract(Player player, Location clickedLocation, DungeonInstance instance);
 
     public abstract void onReset(DungeonInstance instance);
+
+    public abstract Puzzle copy();
 }

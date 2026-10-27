@@ -96,9 +96,69 @@ public class DungeonManager {
                             objs.add(new CollectItemsObjective(disp, amt, mat));
                         } else if ("SURVIVE_TIME".equals(typeStr)) {
                             objs.add(new SurviveTimeObjective(disp, amt));
+                        } else if ("REACH_LOCATION".equals(typeStr)) {
+                            Location target = parseLocation(String.valueOf(oMap.get("location")));
+                            double radius = oMap.containsKey("radius") ? ((Number) oMap.get("radius")).doubleValue() : 3.0;
+                            objs.add(new ReachLocationObjective(disp, target, radius));
                         }
                     }
                     dungeon.addStage(new DungeonStage(num, name, duration, objs, clearCmds));
+                }
+            }
+
+            ConfigurationSection structSec = yaml.getConfigurationSection("structures");
+            if (structSec != null) {
+                for (String structKey : structSec.getKeys(false)) {
+                    ConfigurationSection sSec = structSec.getConfigurationSection(structKey);
+                    if (sSec == null) continue;
+                    String type = sSec.getString("type", "").toUpperCase();
+                    Location loc = parseLocation(sSec.getString("location"));
+
+                    if ("LOOT_CHEST".equals(type)) {
+                        String lootTable = sSec.getString("loot-table", "default");
+                        boolean mimic = sSec.getBoolean("mimic", false);
+                        dungeon.addStructure(new com.lino.customdungeons.structure.LootChestStructure(structKey, loc, lootTable, mimic));
+                    } else if ("SPAWNER".equals(type)) {
+                        EntityType et = EntityType.valueOf(sSec.getString("entity", "ZOMBIE").toUpperCase());
+                        int maxEnt = sSec.getInt("max-entities", 4);
+                        int interval = sSec.getInt("interval-seconds", 10);
+                        dungeon.addStructure(new com.lino.customdungeons.structure.SpawnerStructure(structKey, loc, et, maxEnt, interval));
+                    } else if ("DOOR".equals(type)) {
+                        Material openMat = Material.matchMaterial(sSec.getString("open-material", "AIR"));
+                        Material closedMat = Material.matchMaterial(sSec.getString("closed-material", "IRON_BARS"));
+                        List<Location> blocks = new ArrayList<>();
+                        for (String bStr : sSec.getStringList("blocks")) {
+                            Location bLoc = parseLocation(bStr);
+                            if (bLoc != null) blocks.add(bLoc);
+                        }
+                        dungeon.addStructure(new com.lino.customdungeons.structure.DoorStructure(structKey, loc, blocks, openMat, closedMat));
+                    }
+                }
+            }
+
+            ConfigurationSection puzzleSec = yaml.getConfigurationSection("puzzles");
+            if (puzzleSec != null) {
+                for (String puzKey : puzzleSec.getKeys(false)) {
+                    ConfigurationSection pSec = puzzleSec.getConfigurationSection(puzKey);
+                    if (pSec == null) continue;
+                    String type = pSec.getString("type", "").toUpperCase();
+
+                    if ("SEQUENCE".equals(type)) {
+                        List<Location> seq = new ArrayList<>();
+                        for (String locStr : pSec.getStringList("sequence")) {
+                            Location l = parseLocation(locStr);
+                            if (l != null) seq.add(l);
+                        }
+                        dungeon.addPuzzle(new com.lino.customdungeons.puzzle.SequencePuzzle(puzKey, seq));
+                    } else if ("DIAL_CODE".equals(type)) {
+                        List<Location> dials = new ArrayList<>();
+                        for (String locStr : pSec.getStringList("dials")) {
+                            Location l = parseLocation(locStr);
+                            if (l != null) dials.add(l);
+                        }
+                        List<Integer> combo = pSec.getIntegerList("combination");
+                        dungeon.addPuzzle(new com.lino.customdungeons.puzzle.DialCodePuzzle(puzKey, dials, combo));
+                    }
                 }
             }
             dungeons.put(id, dungeon);

@@ -43,4 +43,9 @@ public class SequencePuzzle extends Puzzle {
         this.solved = false;
         this.currentProgress.clear();
     }
+
+    @Override
+    public Puzzle copy() {
+        return new SequencePuzzle(id, new ArrayList<>(targetSequence));
+    }
 }

@@ -43,6 +43,11 @@ public class LoadoutSubCommand implements SubCommand {
             return;
         }
 
+        if (!plugin.getDungeonManager().isInDungeon(player)) {
+            player.sendMessage(com.lino.customdungeons.config.Messages.colorize("&cYou can only select a loadout while inside a dungeon!"));
+            return;
+        }
+
         new LoadoutMenu(plugin, player).open();
     }
 

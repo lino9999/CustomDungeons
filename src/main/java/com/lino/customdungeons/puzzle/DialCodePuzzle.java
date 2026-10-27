@@ -6,6 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,5 +59,10 @@ public class DialCodePuzzle extends Puzzle {
         for (Location loc : dialLocations) {
             currentValues.put(loc, 0);
         }
+    }
+
+    @Override
+    public Puzzle copy() {
+        return new DialCodePuzzle(id, new ArrayList<>(dialLocations), new ArrayList<>(targetCombination));
     }
 }

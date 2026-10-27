@@ -38,6 +38,15 @@ public class LoadoutMenu extends Menu {
             }
             setItem(slot++, new MenuItem(icon, event -> {
                 player.closeInventory();
+                java.util.Optional<com.lino.customdungeons.core.DungeonInstance> instOpt = plugin.getDungeonManager().getInstance(player);
+                if (instOpt.isPresent()) {
+                    com.lino.customdungeons.core.DungeonInstance inst = instOpt.get();
+                    if (!inst.canSelectLoadout(player)) {
+                        player.sendMessage(Messages.colorize("&cYou have already selected a loadout for this dungeon run!"));
+                        return;
+                    }
+                    inst.markLoadoutSelected(player);
+                }
                 loadout.apply(player);
                 Messages.send(player, "loadout.selected", java.util.Map.of("loadout", loadout.getDisplayName()));
             }));

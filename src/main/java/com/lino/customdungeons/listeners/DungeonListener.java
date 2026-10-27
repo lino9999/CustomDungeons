@@ -161,7 +161,7 @@ public class DungeonListener implements Listener {
         if (block == null) return;
         Location loc = block.getLocation();
 
-        for (Structure structure : instance.getDungeon().getStructures()) {
+        for (Structure structure : instance.getStructures()) {
             if (structure.getLocation() != null && structure.getLocation().equals(loc)) {
                 event.setCancelled(true);
                 structure.onInteract(player, instance);
@@ -169,7 +169,7 @@ public class DungeonListener implements Listener {
             }
         }
 
-        for (Puzzle puzzle : instance.getDungeon().getPuzzles()) {
+        for (Puzzle puzzle : instance.getPuzzles()) {
             puzzle.onInteract(player, loc, instance);
         }
 
@@ -195,15 +195,24 @@ public class DungeonListener implements Listener {
         Optional<DungeonInstance> instOpt = plugin.getDungeonManager().getInstance(player);
         if (instOpt.isEmpty()) return;
 
-        com.lino.customdungeons.core.Dungeon dungeon = instOpt.get().getDungeon();
+        DungeonInstance instance = instOpt.get();
+        com.lino.customdungeons.core.Dungeon dungeon = instance.getDungeon();
         Location pos1 = dungeon.getPos1();
         Location pos2 = dungeon.getPos2();
         if (pos1 != null && pos2 != null) {
             if (!isWithinBounds(to, pos1, pos2)) {
                 event.setCancelled(true);
                 player.sendMessage(com.lino.customdungeons.config.Messages.colorize("&cYou cannot leave the dungeon arena boundaries!"));
+                return;
             }
         }
+
+        for (Objective obj : instance.getActiveObjectives()) {
+            if (obj instanceof com.lino.customdungeons.objective.ReachLocationObjective reachObj && reachObj.isWithin(to)) {
+                reachObj.increment(1);
+            }
+        }
+        instance.checkStageProgression();
     }
 
     private boolean isWithinBounds(Location loc, Location pos1, Location pos2) {

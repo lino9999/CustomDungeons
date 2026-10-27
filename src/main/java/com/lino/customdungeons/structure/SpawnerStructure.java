@@ -54,4 +54,9 @@ public class SpawnerStructure extends Structure {
         spawned.clear();
         counter = 0;
     }
+
+    @Override
+    public Structure copy() {
+        return new SpawnerStructure(id, location, entityType, maxEntities, intervalSeconds);
+    }
 }
