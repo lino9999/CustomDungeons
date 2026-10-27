@@ -1,0 +1,50 @@
+name: CustomDungeons
+version: '${version}'
+main: com.lino.customdungeons.CustomDungeons
+api-version: '1.21'
+author: Lino
+description: Modular, high-performance dungeon management plugin for Spigot and Paper servers.
+softdepend: [PlaceholderAPI, Vault, MythicMobs]
+commands:
+  customdungeons:
+    description: Root command for CustomDungeons.
+    aliases: [cd, dungeon, dungeons]
+    permission: customdungeons.use
+permissions:
+  customdungeons.use:
+    description: Allows using basic dungeon commands.
+    default: true
+  customdungeons.user.join:
+    description: Allows joining a dungeon.
+    default: true
+  customdungeons.user.leave:
+    description: Allows leaving a dungeon.
+    default: true
+  customdungeons.user.list:
+    description: Allows listing available dungeons.
+    default: true
+  customdungeons.user.menu:
+    description: Allows opening dungeon menus.
+    default: true
+  customdungeons.party:
+    description: Allows managing dungeon parties.
+    default: true
+  customdungeons.queue:
+    description: Allows queueing for dungeons.
+    default: true
+  customdungeons.loot:
+    description: Allows claiming dungeon rewards.
+    default: true
+  customdungeons.loadout:
+    description: Allows selecting dungeon loadouts.
+    default: true
+  customdungeons.admin.*:
+    description: Full administrative control over CustomDungeons.
+    default: op
+    children:
+      customdungeons.admin.create: true
+      customdungeons.admin.delete: true
+      customdungeons.admin.setup: true
+      customdungeons.admin.manage: true
+      customdungeons.admin.reload: true
+      customdungeons.admin.stats: true

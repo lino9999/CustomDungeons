@@ -1,0 +1,59 @@
+prefix: "&8[&6CustomDungeons&8]&r "
+no-permission: "&cYou do not have permission to execute this command."
+player-only: "&cOnly in-game players can use this command."
+reload-success: "&aConfiguration and dungeons reloaded successfully!"
+
+dungeon:
+  not-found: "&cThe specified dungeon '{dungeon}' was not found."
+  already-in-game: "&cYou are already participating in an active dungeon!"
+  not-in-game: "&cYou are not currently in a dungeon."
+  cannot-join: "&cYou cannot join this dungeon: {reason}"
+  joined: "&aYou have entered the dungeon &e{dungeon}&a!"
+  left: "&eYou have left the dungeon."
+  countdown: "&eDungeon starting in &6{seconds}&e seconds..."
+  started: "&aThe dungeon has begun! Complete your stage objectives to advance."
+  stage-cleared: "&6Stage &e{stage} &6cleared! Moving to next challenge..."
+  victory-title: "&6&lVICTORY!"
+  victory-subtitle: "&aYou conquered &e{dungeon}&a!"
+  defeat-title: "&c&lDEFEAT!"
+  defeat-subtitle: "&7You ran out of lives or time."
+  time-remaining: "&eTime remaining: &6{time}"
+  lives-remaining: "&cLives remaining: &e{lives}"
+  player-died: "&cPlayer &e{player} &chas fallen! Remaining lives: &e{lives}"
+  eliminated: "&cYou have been eliminated from the dungeon."
+
+party:
+  created: "&aParty created! Use &e/cd party invite <player>&a to invite members."
+  disbanded: "&eYour party has been disbanded."
+  already-in-party: "&cYou are already in a party."
+  not-in-party: "&cYou are not in a party."
+  not-leader: "&cOnly the party leader can perform this action."
+  invite-sent: "&aInvitation sent to &e{player}&a."
+  invite-received: "&e{player} &ahas invited you to join their party! Type &e/cd party accept {player} &ato join."
+  invite-expired: "&cParty invitation from &e{player} &chas expired."
+  player-not-found: "&cPlayer '{player}' is offline or not found."
+  party-full: "&cYour party has reached the maximum size."
+  member-joined: "&e{player} &ahas joined the party!"
+  member-left: "&e{player} &ahas left the party."
+  member-kicked: "&e{player} &chas been kicked from the party."
+
+queue:
+  joined: "&aYou entered the queue for &e{dungeon}&a. Searching for match..."
+  left: "&eYou left the matchmaking queue."
+  already-queued: "&cYou are already waiting in a queue."
+  not-queued: "&cYou are not currently in a queue."
+  match-found: "&aMatch found! Preparing dungeon entrance..."
+
+loadout:
+  selected: "&aLoadout &e{loadout} &aselected."
+  not-found: "&cLoadout '{loadout}' does not exist."
+
+loot:
+  claimed: "&aYou successfully claimed your dungeon rewards!"
+  no-rewards: "&7You do not have any pending rewards to claim."
+
+admin:
+  created: "&aDungeon &e{dungeon} &acreated successfully."
+  deleted: "&cDungeon &e{dungeon} &cdeleted."
+  setup-point: "&aSet &e{point} &afor dungeon &e{dungeon}&a to your current position."
+  forced-stop: "&eDungeon &c{dungeon} &ewas forcefully stopped by an administrator."

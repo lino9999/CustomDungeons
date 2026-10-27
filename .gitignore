@@ -1,0 +1,25 @@
+# Build artifacts
+.gradle/
+build/
+bin/
+out/
+target/
+*.jar
+*.class
+
+# IDE and Editor files
+.idea/
+*.iml
+.vscode/
+*.ipr
+*.iws
+
+# Logs & temp
+*.log
+logs/
+.system_generated/
+scratch/
+
+# Original plugin folder (kept local, not pushed)
+Plugin originale/
+Plugin originale/**

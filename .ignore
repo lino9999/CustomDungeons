@@ -1,0 +1,13 @@
+# Token-saving ignore rules for AI tools and code indexers
+Plugin originale/**
+.gradle/**
+build/**
+target/**
+bin/**
+out/**
+*.jar
+*.class
+*.log
+*.zip
+*.tar.gz
+.git/**

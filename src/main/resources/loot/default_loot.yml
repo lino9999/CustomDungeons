@@ -1,0 +1,23 @@
+catacombs_boss:
+  rolls: 2
+  items:
+    - material: DIAMOND_SWORD
+      name: "&6Blade of the Crypt"
+      lore:
+        - "&7An ancient forged blade recovered"
+        - "&7from the depths of the catacombs."
+      enchantments:
+        SHARPNESS: 4
+        UNBREAKING: 3
+      chance: 40.0
+      min-amount: 1
+      max-amount: 1
+    - material: GOLDEN_APPLE
+      name: "&eBlessed Apple"
+      chance: 80.0
+      min-amount: 2
+      max-amount: 5
+    - material: EMERALD
+      chance: 100.0
+      min-amount: 8
+      max-amount: 16

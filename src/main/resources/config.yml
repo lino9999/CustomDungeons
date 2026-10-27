@@ -1,0 +1,24 @@
+settings:
+  check-updates: false
+  debug-mode: false
+  command-prefix: "&8[&6CustomDungeons&8]&r "
+  default-lives: 3
+  countdown-seconds: 5
+  inventory-handling: ISOLATED # Options: ISOLATED, KEEP, CLEAR_ON_DEATH
+  auto-rollback: true
+  allow-drop-items: false
+  allow-block-break: false
+  allow-block-place: false
+  allow-pvp: false
+
+party:
+  max-size: 5
+  invite-timeout-seconds: 60
+  disband-on-leader-leave: true
+
+queue:
+  check-interval-ticks: 20
+  timeout-seconds: 300
+
+storage:
+  type: YAML

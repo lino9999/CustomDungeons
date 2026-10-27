@@ -1,0 +1,125 @@
+[CENTER]
+[SIZE=6][B][COLOR=#f1c40f]📖 CustomDungeons Documentation[/COLOR][/B][/SIZE]
+[SIZE=3][COLOR=#95a5a6]Complete Setup & Configuration Guide[/COLOR][/SIZE]
+[/CENTER]
+
+[HR][/HR]
+
+[SIZE=5][B][COLOR=#e67e22]🚀 1. QUICK START GUIDE[/COLOR][/B][/SIZE]
+
+[SIZE=3]
+Follow these simple steps to get your first dungeon running in under 3 minutes:
+[/SIZE]
+
+[B]Step 1: Install the plugin[/B]
+[LIST=1]
+[*]Place [B]CustomDungeons.jar[/B] into your server's [B]/plugins/[/B] folder.
+[*](Optional) Ensure [B]PlaceholderAPI[/B] and [B]Vault[/B] are installed if you wish to use placeholders and economy entry costs.
+[*]Start or restart your server. Default configuration files will be generated automatically.
+[/LIST]
+
+[B]Step 2: Create a Dungeon[/B]
+[LIST=1]
+[*]Stand at the desired lobby/waiting area and run:
+[CODE]/cd admin create myfirstdungeon
+/cd admin setlobby myfirstdungeon[/CODE]
+[*]Fly to the starting spawn point inside the arena and run:
+[CODE]/cd admin setspawn myfirstdungeon[/CODE]
+[*]Stand at the victory/defeat exit position outside the dungeon and run:
+[CODE]/cd admin setexit myfirstdungeon[/CODE]
+[/LIST]
+
+[B]Step 3: Test and Play[/B]
+[LIST=1]
+[*]Open the menu: [B]/cd menu[/B] or join directly via [B]/cd join myfirstdungeon[/B].
+[/LIST]
+
+[HR][/HR]
+
+[SIZE=5][B][COLOR=#3498db]⚙️ 2. CONFIGURATION STRUCTURE[/COLOR][/B][/SIZE]
+
+[SIZE=4][B][COLOR=#f39c12]dungeons/<dungeon>.yml[/COLOR][/B][/SIZE]
+[CODE=yaml]
+enabled: true
+display-name: "&6Forgotten Catacombs"
+description: "A dark labyrinth crawling with undead beasts."
+min-players: 1
+max-players: 4
+lives: 3
+time-limit-seconds: 600
+
+requirements:
+  permission: "customdungeons.access.catacombs"
+  min-level: 5
+  cost: 100.0
+
+rewards:
+  commands:
+    - "give {player} diamond 3"
+    - "eco give {player} 500"
+  experience: 250
+  loot-table: "catacombs_boss"
+
+stages:
+  1:
+    name: "The Crypt Gates"
+    duration-seconds: 180
+    objectives:
+      - type: KILL_MOBS
+        entity: ZOMBIE
+        amount: 8
+        display-name: "Slay Crypt Walkers"
+    clear-commands:
+      - "broadcast &8[&6Dungeon&8] &aStage 1 cleared by {player}!"
+  2:
+    name: "The Boss Chamber"
+    duration-seconds: 300
+    objectives:
+      - type: KILL_MOBS
+        entity: WITHER_SKELETON
+        amount: 1
+        display-name: "Vanquish the Crypt Overlord"
+[/CODE]
+
+[HR][/HR]
+
+[SIZE=5][B][COLOR=#2ecc71]🎯 3. OBJECTIVE TYPES[/COLOR][/B][/SIZE]
+
+[LIST]
+[*][B]KILL_MOBS:[/B] Slay a specified amount of living entities.
+[CODE=yaml]
+- type: KILL_MOBS
+  entity: ZOMBIE
+  amount: 10
+  display-name: "Kill 10 Zombies"
+[/CODE]
+
+[*][B]INTERACT_BLOCK:[/B] Interact with or activate specific blocks in the arena.
+[CODE=yaml]
+- type: INTERACT_BLOCK
+  material: LEVER
+  amount: 2
+  display-name: "Pull 2 Levers"
+[/CODE]
+
+[*][B]SURVIVE_TIME:[/B] Survive incoming waves for the specified duration.
+[CODE=yaml]
+- type: SURVIVE_TIME
+  amount: 60
+  display-name: "Survive the onslaught for 60s"
+[/CODE]
+[/LIST]
+
+[HR][/HR]
+
+[SIZE=5][B][COLOR=#9b59b6]💎 4. PLACEHOLDERS[/COLOR][/B][/SIZE]
+
+[LIST]
+[*][B]%customdungeons_in_dungeon%[/B] - Returns true/false whether player is in a session.
+[*][B]%customdungeons_current%[/B] - Display name of the active dungeon.
+[*][B]%customdungeons_stage%[/B] - Active stage number.
+[*][B]%customdungeons_lives%[/B] - Remaining lives for the player.
+[*][B]%customdungeons_time%[/B] - Formatted timer (MM:SS).
+[*][B]%customdungeons_party_size%[/B] - Member count of current party.
+[*][B]%customdungeons_party_leader%[/B] - Leader of the current party.
+[/LIST]
