@@ -86,7 +86,12 @@ public class DungeonManager {
                         int amt = oMap.containsKey("amount") ? ((Number) oMap.get("amount")).intValue() : 1;
 
                         if ("KILL_MOBS".equals(typeStr)) {
-                            EntityType et = oMap.containsKey("entity") ? EntityType.valueOf(String.valueOf(oMap.get("entity")).toUpperCase()) : null;
+                            EntityType et = null;
+                            if (oMap.containsKey("entity")) {
+                                try {
+                                    et = EntityType.valueOf(String.valueOf(oMap.get("entity")).toUpperCase());
+                                } catch (IllegalArgumentException ignored) {}
+                            }
                             objs.add(new KillMobsObjective(disp, amt, et));
                         } else if ("INTERACT_BLOCK".equals(typeStr)) {
                             Material mat = oMap.containsKey("material") ? Material.matchMaterial(String.valueOf(oMap.get("material"))) : null;
@@ -119,7 +124,10 @@ public class DungeonManager {
                         boolean mimic = sSec.getBoolean("mimic", false);
                         dungeon.addStructure(new com.lino.customdungeons.structure.LootChestStructure(structKey, loc, lootTable, mimic));
                     } else if ("SPAWNER".equals(type)) {
-                        EntityType et = EntityType.valueOf(sSec.getString("entity", "ZOMBIE").toUpperCase());
+                        EntityType et = EntityType.ZOMBIE;
+                        try {
+                            et = EntityType.valueOf(sSec.getString("entity", "ZOMBIE").toUpperCase());
+                        } catch (IllegalArgumentException ignored) {}
                         int maxEnt = sSec.getInt("max-entities", 4);
                         int interval = sSec.getInt("interval-seconds", 10);
                         dungeon.addStructure(new com.lino.customdungeons.structure.SpawnerStructure(structKey, loc, et, maxEnt, interval));

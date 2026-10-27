@@ -177,12 +177,16 @@ public class DungeonInstance {
 
         if (allDone) {
             for (String cmd : currentStage.getClearCommands()) {
-                for (UUID uuid : participants) {
-                    Player p = Bukkit.getPlayer(uuid);
-                    if (p != null) {
-                        String parsed = cmd.replace("{player}", p.getName());
-                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parsed);
+                if (cmd.contains("{player}")) {
+                    for (UUID uuid : participants) {
+                        Player p = Bukkit.getPlayer(uuid);
+                        if (p != null && p.isOnline()) {
+                            String parsed = cmd.replace("{player}", p.getName());
+                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parsed);
+                        }
                     }
+                } else {
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
                 }
             }
 
@@ -321,12 +325,22 @@ public class DungeonInstance {
                         p.giveExp(dungeon.getRewardExperience());
                     }
                     for (String cmd : dungeon.getRewardCommands()) {
-                        String parsed = cmd.replace("{player}", p.getName());
-                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parsed);
+                        if (cmd.contains("{player}")) {
+                            String parsed = cmd.replace("{player}", p.getName());
+                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parsed);
+                        }
                     }
                 }
             } else if (isolated && snapshot != null) {
                 plugin.getDungeonManager().saveOfflineRestore(uuid, snapshot);
+            }
+        }
+
+        if (wasCompleted) {
+            for (String cmd : dungeon.getRewardCommands()) {
+                if (!cmd.contains("{player}")) {
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+                }
             }
         }
 

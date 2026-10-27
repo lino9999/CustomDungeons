@@ -63,8 +63,31 @@ public class DungeonListener implements Listener {
         event.setKeepLevel(true);
         event.getDrops().clear();
         event.setDroppedExp(0);
+        event.setDeathMessage(null);
 
         instance.handlePlayerDeath(player);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerRespawn(org.bukkit.event.player.PlayerRespawnEvent event) {
+        Player player = event.getPlayer();
+        Optional<DungeonInstance> instOpt = plugin.getDungeonManager().getInstance(player);
+        if (instOpt.isEmpty()) return;
+
+        DungeonInstance instance = instOpt.get();
+        if (instance.isParticipant(player)) {
+            if (instance.getLives(player) > 0) {
+                Location spawn = instance.getDungeon().getSpawnLocation();
+                if (spawn != null) {
+                    event.setRespawnLocation(spawn);
+                }
+            } else {
+                Location exit = instance.getDungeon().getExitLocation();
+                if (exit != null) {
+                    event.setRespawnLocation(exit);
+                }
+            }
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -121,12 +144,41 @@ public class DungeonListener implements Listener {
         if (player.hasPermission("customdungeons.admin.*")) return;
 
         String msg = event.getMessage().toLowerCase();
-        if (msg.startsWith("/cd ") || msg.startsWith("/customdungeons ") || msg.startsWith("/dungeon ") || msg.startsWith("/dungeons ")) {
+        if (msg.equals("/cd") || msg.startsWith("/cd ") ||
+            msg.equals("/customdungeons") || msg.startsWith("/customdungeons ") ||
+            msg.equals("/dungeon") || msg.startsWith("/dungeon ") ||
+            msg.equals("/dungeons") || msg.startsWith("/dungeons ")) {
             return;
         }
 
         event.setCancelled(true);
         player.sendMessage(com.lino.customdungeons.config.Messages.colorize("&cYou cannot use server commands while inside a dungeon! Use &e/cd leave &cto exit."));
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onCreatureSpawn(org.bukkit.event.entity.CreatureSpawnEvent event) {
+        if (event.getSpawnReason() == org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.NATURAL) {
+            Location loc = event.getLocation();
+            for (DungeonInstance instance : plugin.getDungeonManager().getActiveInstances()) {
+                Location pos1 = instance.getDungeon().getPos1();
+                Location pos2 = instance.getDungeon().getPos2();
+                if (pos1 != null && pos2 != null && isWithinBounds(loc, pos1, pos2)) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onPlayerInteractEntity(org.bukkit.event.player.PlayerInteractEntityEvent event) {
+        Player player = event.getPlayer();
+        Optional<DungeonInstance> instOpt = plugin.getDungeonManager().getInstance(player);
+        if (instOpt.isEmpty()) return;
+
+        if (player.getGameMode() == org.bukkit.GameMode.SPECTATOR) {
+            event.setCancelled(true);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGH)
