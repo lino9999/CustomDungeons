@@ -7,6 +7,7 @@ import com.lino.customdungeons.api.events.StageAdvanceEvent;
 import com.lino.customdungeons.config.Messages;
 import com.lino.customdungeons.loot.LootTable;
 import com.lino.customdungeons.objective.Objective;
+import com.lino.customdungeons.objective.SurviveTimeObjective;
 import com.lino.customdungeons.rollback.RollbackManager;
 import com.lino.customdungeons.structure.SpawnerStructure;
 import com.lino.customdungeons.structure.Structure;
@@ -14,7 +15,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Sound;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -38,6 +38,7 @@ public class DungeonInstance {
     private List<Objective> activeObjectives = new ArrayList<>();
     private int secondsRemaining;
     private BukkitTask tickerTask;
+    private BukkitTask countdownTask;
 
     public DungeonInstance(CustomDungeons plugin, Dungeon dungeon, List<Player> players) {
         this.plugin = plugin;
@@ -56,13 +57,13 @@ public class DungeonInstance {
         Location lobby = dungeon.getLobbyLocation() != null ? dungeon.getLobbyLocation() : dungeon.getSpawnLocation();
         for (UUID uuid : participants) {
             Player p = Bukkit.getPlayer(uuid);
-            if (p != null) {
-                if (lobby != null) p.teleport(lobby);
+            if (p != null && lobby != null) {
+                p.teleport(lobby);
             }
         }
 
         final int[] countdown = {5};
-        BukkitTask countdownTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+        this.countdownTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             if (countdown[0] > 0) {
                 for (UUID uuid : participants) {
                     Player p = Bukkit.getPlayer(uuid);
@@ -73,6 +74,10 @@ public class DungeonInstance {
                 }
                 countdown[0]--;
             } else {
+                if (countdownTask != null) {
+                    countdownTask.cancel();
+                    countdownTask = null;
+                }
                 beginActiveDungeon();
             }
         }, 0L, 20L);
@@ -80,11 +85,11 @@ public class DungeonInstance {
 
     private void beginActiveDungeon() {
         this.state = DungeonState.ACTIVE;
-        Location spawn = dungeon.getSpawnLocation();
+        Location spawn = dungeon.getSpawnLocation() != null ? dungeon.getSpawnLocation() : Bukkit.getWorlds().get(0).getSpawnLocation();
         for (UUID uuid : participants) {
             Player p = Bukkit.getPlayer(uuid);
             if (p != null) {
-                if (spawn != null) p.teleport(spawn);
+                p.teleport(spawn);
                 p.setGameMode(GameMode.SURVIVAL);
                 p.setHealth(p.getMaxHealth());
                 p.setFoodLevel(20);
@@ -113,7 +118,7 @@ public class DungeonInstance {
             }
 
             for (Objective obj : activeObjectives) {
-                if (obj instanceof com.lino.customdungeons.objective.SurviveTimeObjective survive) {
+                if (obj instanceof SurviveTimeObjective survive) {
                     survive.increment(1);
                 }
             }
@@ -184,14 +189,26 @@ public class DungeonInstance {
         playerLives.put(uuid, lives);
 
         if (lives > 0) {
-            Location spawn = dungeon.getSpawnLocation();
-            if (spawn != null) player.teleport(spawn);
-            player.setHealth(player.getMaxHealth());
-            player.setFoodLevel(20);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                if (player.isOnline()) {
+                    player.spigot().respawn();
+                    Location spawn = dungeon.getSpawnLocation() != null ? dungeon.getSpawnLocation() : Bukkit.getWorlds().get(0).getSpawnLocation();
+                    player.teleport(spawn);
+                    player.setHealth(player.getMaxHealth());
+                    player.setFoodLevel(20);
+                }
+            }, 1L);
             broadcast(Messages.get("dungeon.player-died", Map.of("player", player.getName(), "lives", String.valueOf(lives))));
         } else {
             alivePlayers.remove(uuid);
-            player.setGameMode(GameMode.SPECTATOR);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                if (player.isOnline()) {
+                    player.spigot().respawn();
+                    player.setGameMode(GameMode.SPECTATOR);
+                    Location spawn = dungeon.getSpawnLocation() != null ? dungeon.getSpawnLocation() : Bukkit.getWorlds().get(0).getSpawnLocation();
+                    player.teleport(spawn);
+                }
+            }, 1L);
             Messages.send(player, "dungeon.eliminated");
 
             if (alivePlayers.isEmpty()) {
@@ -202,7 +219,7 @@ public class DungeonInstance {
 
     public void complete() {
         this.state = DungeonState.COMPLETED;
-        stopTicker();
+        stopAllTasks();
         Bukkit.getPluginManager().callEvent(new DungeonCompleteEvent(this));
 
         for (UUID uuid : participants) {
@@ -236,7 +253,7 @@ public class DungeonInstance {
 
     public void fail(String reason) {
         this.state = DungeonState.FAILED;
-        stopTicker();
+        stopAllTasks();
         Bukkit.getPluginManager().callEvent(new DungeonFailEvent(this, reason));
 
         for (UUID uuid : participants) {
@@ -252,6 +269,7 @@ public class DungeonInstance {
 
     public void cleanup() {
         this.state = DungeonState.RESETTING;
+        stopAllTasks();
         Location exit = dungeon.getExitLocation() != null ? dungeon.getExitLocation() : Bukkit.getWorlds().get(0).getSpawnLocation();
 
         for (UUID uuid : participants) {
@@ -280,10 +298,14 @@ public class DungeonInstance {
         plugin.getDungeonManager().removeInstance(this);
     }
 
-    private void stopTicker() {
+    private void stopAllTasks() {
         if (tickerTask != null) {
             tickerTask.cancel();
             tickerTask = null;
+        }
+        if (countdownTask != null) {
+            countdownTask.cancel();
+            countdownTask = null;
         }
     }
 

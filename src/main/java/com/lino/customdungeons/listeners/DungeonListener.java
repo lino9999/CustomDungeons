@@ -2,6 +2,7 @@ package com.lino.customdungeons.listeners;
 
 import com.lino.customdungeons.CustomDungeons;
 import com.lino.customdungeons.core.DungeonInstance;
+import com.lino.customdungeons.objective.CollectItemsObjective;
 import com.lino.customdungeons.objective.InteractBlockObjective;
 import com.lino.customdungeons.objective.KillMobsObjective;
 import com.lino.customdungeons.objective.Objective;
@@ -19,8 +20,10 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
 
@@ -75,7 +78,7 @@ public class DungeonListener implements Listener {
             event.setCancelled(true);
             return;
         }
-        instOpt.get().getRollbackManager().recordChange(event.getBlock());
+        instOpt.get().getRollbackManager().recordChange(event.getBlock().getLocation(), event.getBlock().getBlockData());
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -89,12 +92,29 @@ public class DungeonListener implements Listener {
             event.setCancelled(true);
             return;
         }
-        instOpt.get().getRollbackManager().recordChange(event.getBlock());
+        instOpt.get().getRollbackManager().recordChange(event.getBlock().getLocation(), event.getBlockReplacedState().getBlockData());
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onItemPickup(EntityPickupItemEvent event) {
+        if (event.getEntity() instanceof Player player) {
+            Optional<DungeonInstance> instOpt = plugin.getDungeonManager().getInstance(player);
+            if (instOpt.isEmpty()) return;
+
+            DungeonInstance instance = instOpt.get();
+            ItemStack item = event.getItem().getItemStack();
+            for (Objective obj : instance.getActiveObjectives()) {
+                if (obj instanceof CollectItemsObjective collectObj && collectObj.matches(item.getType())) {
+                    collectObj.increment(item.getAmount());
+                }
+            }
+            instance.checkStageProgression();
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onEntityDamage(EntityDamageByEntityEvent event) {
-        if (event.getEntity() instanceof Player victim && event.getDamager() instanceof Player damager) {
+        if (event.getEntity() instanceof Player victim && event.getDamager() instanceof Player) {
             Optional<DungeonInstance> instOpt = plugin.getDungeonManager().getInstance(victim);
             if (instOpt.isPresent() && !plugin.getConfig().getBoolean("settings.allow-pvp", false)) {
                 event.setCancelled(true);

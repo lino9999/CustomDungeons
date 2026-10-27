@@ -105,6 +105,12 @@ public class DungeonManager {
     }
 
     public DungeonInstance startInstance(Dungeon dungeon, List<Player> players) {
+        if (dungeon.getSpawnLocation() == null) {
+            for (Player p : players) {
+                p.sendMessage(Messages.colorize("&cCannot start dungeon: Spawn location has not been configured by an admin yet!"));
+            }
+            return null;
+        }
         DungeonInstance instance = new DungeonInstance(plugin, dungeon, players);
         activeInstances.add(instance);
         for (Player p : players) {

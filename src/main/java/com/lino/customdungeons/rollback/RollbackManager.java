@@ -1,7 +1,7 @@
 package com.lino.customdungeons.rollback;
 
 import org.bukkit.Location;
-import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,10 +11,9 @@ import java.util.Map;
 public class RollbackManager {
     private final Map<Location, BlockChange> changes = new HashMap<>();
 
-    public void recordChange(Block block) {
-        Location loc = block.getLocation();
+    public void recordChange(Location loc, BlockData originalData) {
         if (!changes.containsKey(loc)) {
-            changes.put(loc, new BlockChange(loc, block.getBlockData()));
+            changes.put(loc.clone(), new BlockChange(loc, originalData));
         }
     }
 
