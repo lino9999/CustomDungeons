@@ -112,6 +112,14 @@ public class DungeonManager {
             }
             return null;
         }
+
+        if (dungeon.getRequiredCost() > 0 && plugin.getVaultHook() != null && plugin.getVaultHook().hasEconomy()) {
+            for (Player p : players) {
+                plugin.getVaultHook().withdraw(p, dungeon.getRequiredCost());
+                p.sendMessage(Messages.colorize("&eDungeon entry fee deducted: &6$" + dungeon.getRequiredCost()));
+            }
+        }
+
         DungeonInstance instance = new DungeonInstance(plugin, dungeon, players);
         activeInstances.add(instance);
         for (Player p : players) {
@@ -120,6 +128,11 @@ public class DungeonManager {
         }
         instance.start();
         return instance;
+    }
+
+    public void removePlayerFromInstance(Player player, DungeonInstance instance) {
+        playerInstanceMap.remove(player.getUniqueId());
+        Bukkit.getPluginManager().callEvent(new DungeonLeaveEvent(player, instance));
     }
 
     public void removeInstance(DungeonInstance instance) {

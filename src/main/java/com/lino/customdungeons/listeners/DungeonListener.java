@@ -182,4 +182,41 @@ public class DungeonListener implements Listener {
             instance.checkStageProgression();
         }
     }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPlayerMove(org.bukkit.event.player.PlayerMoveEvent event) {
+        Location from = event.getFrom();
+        Location to = event.getTo();
+        if (to == null || (from.getBlockX() == to.getBlockX() && from.getBlockY() == to.getBlockY() && from.getBlockZ() == to.getBlockZ())) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        Optional<DungeonInstance> instOpt = plugin.getDungeonManager().getInstance(player);
+        if (instOpt.isEmpty()) return;
+
+        com.lino.customdungeons.core.Dungeon dungeon = instOpt.get().getDungeon();
+        Location pos1 = dungeon.getPos1();
+        Location pos2 = dungeon.getPos2();
+        if (pos1 != null && pos2 != null) {
+            if (!isWithinBounds(to, pos1, pos2)) {
+                event.setCancelled(true);
+                player.sendMessage(com.lino.customdungeons.config.Messages.colorize("&cYou cannot leave the dungeon arena boundaries!"));
+            }
+        }
+    }
+
+    private boolean isWithinBounds(Location loc, Location pos1, Location pos2) {
+        if (loc.getWorld() == null || pos1.getWorld() == null || pos2.getWorld() == null) return true;
+        if (!loc.getWorld().equals(pos1.getWorld()) || !loc.getWorld().equals(pos2.getWorld())) return false;
+        double minX = Math.min(pos1.getX(), pos2.getX());
+        double maxX = Math.max(pos1.getX(), pos2.getX());
+        double minY = Math.min(pos1.getY(), pos2.getY());
+        double maxY = Math.max(pos1.getY(), pos2.getY());
+        double minZ = Math.min(pos1.getZ(), pos2.getZ());
+        double maxZ = Math.max(pos1.getZ(), pos2.getZ());
+        return loc.getX() >= minX && loc.getX() <= maxX &&
+               loc.getY() >= minY && loc.getY() <= maxY &&
+               loc.getZ() >= minZ && loc.getZ() <= maxZ;
+    }
 }

@@ -50,7 +50,7 @@ public class LeaveSubCommand implements SubCommand {
             return;
         }
 
-        instOpt.get().handlePlayerDeath(player);
+        instOpt.get().leavePlayer(player);
         Messages.send(player, "dungeon.left");
     }
 

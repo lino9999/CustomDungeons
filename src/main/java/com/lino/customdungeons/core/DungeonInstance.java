@@ -219,6 +219,30 @@ public class DungeonInstance {
         }
     }
 
+    public void leavePlayer(Player player) {
+        UUID uuid = player.getUniqueId();
+        participants.remove(uuid);
+        alivePlayers.remove(uuid);
+
+        boolean isolated = "ISOLATED".equalsIgnoreCase(plugin.getConfig().getString("settings.inventory-handling", "ISOLATED"));
+        PlayerSnapshot snapshot = savedSnapshots.remove(uuid);
+        if (isolated && snapshot != null) {
+            snapshot.restore(player);
+        }
+
+        Location exit = dungeon.getExitLocation() != null ? dungeon.getExitLocation() : Bukkit.getWorlds().get(0).getSpawnLocation();
+        player.teleport(exit);
+        player.setGameMode(GameMode.SURVIVAL);
+
+        plugin.getDungeonManager().removePlayerFromInstance(player, this);
+
+        broadcast(Messages.colorize("&e" + player.getName() + " &chas left the dungeon."));
+
+        if (alivePlayers.isEmpty()) {
+            fail("All players have left the dungeon.");
+        }
+    }
+
     public void complete() {
         this.state = DungeonState.COMPLETED;
         stopAllTasks();
@@ -230,10 +254,6 @@ public class DungeonInstance {
                 p.sendTitle(Messages.get("dungeon.victory-title"), Messages.get("dungeon.victory-subtitle", Map.of("dungeon", dungeon.getDisplayName())), 10, 70, 20);
                 p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
 
-                if (dungeon.getRewardExperience() > 0) {
-                    p.giveExp(dungeon.getRewardExperience());
-                }
-
                 if (dungeon.getRewardLootTable() != null) {
                     Optional<LootTable> table = plugin.getLootManager().getTable(dungeon.getRewardLootTable());
                     table.ifPresent(lootTable -> {
@@ -241,11 +261,6 @@ public class DungeonInstance {
                         plugin.getLootManager().addPendingRewards(p, items);
                         p.sendMessage(Messages.colorize("&aYour dungeon rewards are ready! Use &e/cd loot &ato claim them."));
                     });
-                }
-
-                for (String cmd : dungeon.getRewardCommands()) {
-                    String parsed = cmd.replace("{player}", p.getName());
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parsed);
                 }
             }
         }
@@ -285,6 +300,16 @@ public class DungeonInstance {
                 }
                 p.teleport(exit);
                 p.setGameMode(GameMode.SURVIVAL);
+
+                if (state == DungeonState.COMPLETED) {
+                    if (dungeon.getRewardExperience() > 0) {
+                        p.giveExp(dungeon.getRewardExperience());
+                    }
+                    for (String cmd : dungeon.getRewardCommands()) {
+                        String parsed = cmd.replace("{player}", p.getName());
+                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parsed);
+                    }
+                }
             } else if (isolated && snapshot != null) {
                 plugin.getDungeonManager().saveOfflineRestore(uuid, snapshot);
             }

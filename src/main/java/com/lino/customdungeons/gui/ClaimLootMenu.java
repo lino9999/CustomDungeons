@@ -47,7 +47,10 @@ public class ClaimLootMenu extends Menu {
             player.closeInventory();
             List<ItemStack> claimed = plugin.getLootManager().claimRewards(player);
             for (ItemStack item : claimed) {
-                player.getInventory().addItem(item);
+                java.util.Map<Integer, ItemStack> leftover = player.getInventory().addItem(item);
+                for (ItemStack drop : leftover.values()) {
+                    player.getWorld().dropItemNaturally(player.getLocation(), drop);
+                }
             }
             Messages.send(player, "loot.claimed");
         }));

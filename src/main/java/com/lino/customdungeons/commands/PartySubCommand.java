@@ -96,8 +96,42 @@ public class PartySubCommand implements SubCommand {
                     return;
                 }
                 Party party = partyOpt.get();
+                int maxSize = plugin.getConfig().getInt("party.max-size", 5);
+                if (party.getSize() >= maxSize) {
+                    Messages.send(player, "party.party-full");
+                    return;
+                }
                 plugin.getPartyManager().addMember(party, player);
                 party.broadcast(Messages.get("party.member-joined", Map.of("player", player.getName())));
+                break;
+            }
+            case "kick": {
+                if (args.length < 3) {
+                    player.sendMessage(Messages.colorize("&cUsage: /cd party kick <player>"));
+                    return;
+                }
+                Optional<Party> partyOpt = plugin.getPartyManager().getParty(player);
+                if (partyOpt.isEmpty()) {
+                    Messages.send(player, "party.not-in-party");
+                    return;
+                }
+                Party party = partyOpt.get();
+                if (!party.isLeader(player)) {
+                    Messages.send(player, "party.not-leader");
+                    return;
+                }
+                Player target = Bukkit.getPlayer(args[2]);
+                if (target == null || !party.isMember(target)) {
+                    player.sendMessage(Messages.colorize("&cThat player is not in your party."));
+                    return;
+                }
+                if (target.equals(player)) {
+                    player.sendMessage(Messages.colorize("&cYou cannot kick yourself! Use /cd party leave instead."));
+                    return;
+                }
+                plugin.getPartyManager().removeMember(target);
+                party.broadcast(Messages.get("party.member-kicked", Map.of("player", target.getName())));
+                Messages.send(target, "party.member-kicked", Map.of("player", target.getName()));
                 break;
             }
             case "leave": {
@@ -107,6 +141,7 @@ public class PartySubCommand implements SubCommand {
                     return;
                 }
                 Party party = partyOpt.get();
+                plugin.getQueueManager().dequeue(player);
                 if (party.isLeader(player)) {
                     plugin.getPartyManager().disbandParty(party);
                     Messages.send(player, "party.disbanded");
@@ -127,6 +162,7 @@ public class PartySubCommand implements SubCommand {
                     Messages.send(player, "party.not-leader");
                     return;
                 }
+                plugin.getQueueManager().dequeue(player);
                 plugin.getPartyManager().disbandParty(party);
                 Messages.send(player, "party.disbanded");
                 break;
@@ -140,7 +176,7 @@ public class PartySubCommand implements SubCommand {
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
         if (args.length == 2) {
-            return List.of("create", "invite", "accept", "leave", "disband", "menu");
+            return List.of("create", "invite", "accept", "kick", "leave", "disband", "menu");
         }
         return Collections.emptyList();
     }
