@@ -48,6 +48,8 @@ public class PlaceholderAPIHook extends PlaceholderExpansion {
                 return instOpt.isPresent() ? "true" : "false";
             case "current":
                 return instOpt.map(instance -> instance.getDungeon().getDisplayName()).orElse("None");
+            case "stage":
+                return instOpt.map(instance -> String.valueOf(instance.getCurrentStageIndex())).orElse("0");
             case "lives":
                 return instOpt.map(instance -> String.valueOf(instance.getLives(player))).orElse("0");
             case "time":

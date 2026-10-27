@@ -220,6 +220,7 @@ public class DungeonManager {
             snapshot.restore(player);
             Location returnLoc = snapshot.getReturnLocation() != null ? snapshot.getReturnLocation() : Bukkit.getWorlds().get(0).getSpawnLocation();
             player.teleport(returnLoc);
+            player.setGameMode(org.bukkit.GameMode.SURVIVAL);
         }
     }
 

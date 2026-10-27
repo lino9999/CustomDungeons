@@ -60,6 +60,12 @@ public class JoinSubCommand implements SubCommand {
             return;
         }
 
+        Optional<com.lino.customdungeons.party.Party> partyOpt = plugin.getPartyManager().getParty(player);
+        if (partyOpt.isPresent() && !partyOpt.get().isLeader(player)) {
+            Messages.send(player, "party.not-leader");
+            return;
+        }
+
         if (!plugin.getDungeonManager().canPlayerJoin(player, dungeon)) {
             Messages.send(player, "dungeon.cannot-join", Map.of("reason", "Requirements not met."));
             return;

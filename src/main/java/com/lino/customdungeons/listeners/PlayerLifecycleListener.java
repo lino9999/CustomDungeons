@@ -30,9 +30,9 @@ public class PlayerLifecycleListener implements Listener {
         Player player = event.getPlayer();
 
         Optional<DungeonInstance> instOpt = plugin.getDungeonManager().getInstance(player);
-        instOpt.ifPresent(instance -> instance.handlePlayerDeath(player));
+        instOpt.ifPresent(instance -> instance.leavePlayer(player));
 
-        plugin.getQueueManager().dequeue(player);
+        plugin.getQueueManager().dequeue(player, false);
         plugin.getPartyManager().removeMember(player);
     }
 }

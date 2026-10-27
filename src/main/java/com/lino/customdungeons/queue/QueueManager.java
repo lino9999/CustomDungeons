@@ -32,7 +32,11 @@ public class QueueManager {
         }
     }
 
-    public synchronized void dequeue(Player player) {
+    public synchronized boolean dequeue(Player player) {
+        return dequeue(player, true);
+    }
+
+    public synchronized boolean dequeue(Player player, boolean notifyIfNotQueued) {
         for (Map.Entry<String, List<QueueEntry>> entry : queues.entrySet()) {
             Iterator<QueueEntry> it = entry.getValue().iterator();
             while (it.hasNext()) {
@@ -42,11 +46,14 @@ public class QueueManager {
                     for (Player p : qe.getPlayers()) {
                         Messages.send(p, "queue.left");
                     }
-                    return;
+                    return true;
                 }
             }
         }
-        Messages.send(player, "queue.not-queued");
+        if (notifyIfNotQueued) {
+            Messages.send(player, "queue.not-queued");
+        }
+        return false;
     }
 
     public synchronized boolean isQueued(Player player) {
@@ -70,6 +77,9 @@ public class QueueManager {
             List<QueueEntry> list = entry.getValue();
             if (list.isEmpty()) continue;
 
+            list.removeIf(qe -> qe.getPlayers().isEmpty());
+            if (list.isEmpty()) continue;
+
             Optional<Dungeon> dungeonOpt = plugin.getDungeonManager().getDungeon(dungeonId);
             if (dungeonOpt.isEmpty()) continue;
             Dungeon dungeon = dungeonOpt.get();
@@ -78,8 +88,12 @@ public class QueueManager {
             List<QueueEntry> matchedEntries = new ArrayList<>();
 
             for (QueueEntry qe : list) {
-                matchedPlayers.addAll(qe.getPlayers());
-                matchedEntries.add(qe);
+                List<Player> entryPlayers = qe.getPlayers();
+                if (entryPlayers.isEmpty()) continue;
+                if (matchedPlayers.size() + entryPlayers.size() <= dungeon.getMaxPlayers()) {
+                    matchedPlayers.addAll(entryPlayers);
+                    matchedEntries.add(qe);
+                }
                 if (matchedPlayers.size() >= dungeon.getMinPlayers()) {
                     break;
                 }

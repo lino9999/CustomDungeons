@@ -1,6 +1,7 @@
 package com.lino.customdungeons.queue;
 
 import com.lino.customdungeons.party.Party;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.Collections;
@@ -11,14 +12,12 @@ public class QueueEntry {
     private final UUID leaderId;
     private final String dungeonId;
     private final Party party;
-    private final List<Player> players;
     private final long joinTime;
 
     public QueueEntry(Player player, String dungeonId) {
         this.leaderId = player.getUniqueId();
         this.dungeonId = dungeonId;
         this.party = null;
-        this.players = Collections.singletonList(player);
         this.joinTime = System.currentTimeMillis();
     }
 
@@ -26,7 +25,6 @@ public class QueueEntry {
         this.leaderId = party.getLeader();
         this.dungeonId = dungeonId;
         this.party = party;
-        this.players = party.getOnlinePlayers();
         this.joinTime = System.currentTimeMillis();
     }
 
@@ -43,11 +41,15 @@ public class QueueEntry {
     }
 
     public List<Player> getPlayers() {
-        return players;
+        if (party != null) {
+            return party.getOnlinePlayers();
+        }
+        Player leader = Bukkit.getPlayer(leaderId);
+        return (leader != null && leader.isOnline()) ? Collections.singletonList(leader) : Collections.emptyList();
     }
 
     public int getPlayerCount() {
-        return players.size();
+        return getPlayers().size();
     }
 
     public long getJoinTime() {

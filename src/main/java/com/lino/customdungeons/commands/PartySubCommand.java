@@ -80,6 +80,18 @@ public class PartySubCommand implements SubCommand {
                     Messages.send(player, "party.player-not-found", Map.of("player", args[2]));
                     return;
                 }
+                if (target.equals(player)) {
+                    player.sendMessage(Messages.colorize("&cYou cannot invite yourself to your party."));
+                    return;
+                }
+                if (party.isMember(target)) {
+                    player.sendMessage(Messages.colorize("&cThat player is already in your party."));
+                    return;
+                }
+                if (plugin.getPartyManager().getParty(target).isPresent()) {
+                    player.sendMessage(Messages.colorize("&cThat player is already in another party."));
+                    return;
+                }
                 party.invite(target);
                 Messages.send(player, "party.invite-sent", Map.of("player", target.getName()));
                 Messages.send(target, "party.invite-received", Map.of("player", player.getName()));
@@ -141,7 +153,7 @@ public class PartySubCommand implements SubCommand {
                     return;
                 }
                 Party party = partyOpt.get();
-                plugin.getQueueManager().dequeue(player);
+                plugin.getQueueManager().dequeue(player, false);
                 if (party.isLeader(player)) {
                     plugin.getPartyManager().disbandParty(party);
                     Messages.send(player, "party.disbanded");
@@ -162,7 +174,7 @@ public class PartySubCommand implements SubCommand {
                     Messages.send(player, "party.not-leader");
                     return;
                 }
-                plugin.getQueueManager().dequeue(player);
+                plugin.getQueueManager().dequeue(player, false);
                 plugin.getPartyManager().disbandParty(party);
                 Messages.send(player, "party.disbanded");
                 break;

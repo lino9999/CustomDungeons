@@ -141,6 +141,16 @@ public class DungeonListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGH)
+    public void onEntityDamage(org.bukkit.event.entity.EntityDamageEvent event) {
+        if (event.getEntity() instanceof Player player) {
+            Optional<DungeonInstance> instOpt = plugin.getDungeonManager().getInstance(player);
+            if (instOpt.isPresent() && instOpt.get().getState() != com.lino.customdungeons.core.DungeonState.ACTIVE) {
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
     public void onEntityDamage(EntityDamageByEntityEvent event) {
         if (event.getEntity() instanceof Player victim && event.getDamager() instanceof Player) {
             Optional<DungeonInstance> instOpt = plugin.getDungeonManager().getInstance(victim);
@@ -151,8 +161,41 @@ public class DungeonListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGH)
+    public void onEntityExplode(org.bukkit.event.entity.EntityExplodeEvent event) {
+        handleExplosion(event.getLocation(), event.blockList());
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onBlockExplode(org.bukkit.event.block.BlockExplodeEvent event) {
+        handleExplosion(event.getBlock().getLocation(), event.blockList());
+    }
+
+    private void handleExplosion(Location origin, java.util.List<Block> blocks) {
+        for (DungeonInstance instance : plugin.getDungeonManager().getActiveInstances()) {
+            Location pos1 = instance.getDungeon().getPos1();
+            Location pos2 = instance.getDungeon().getPos2();
+            if (pos1 != null && pos2 != null && isWithinBounds(origin, pos1, pos2)) {
+                boolean allow = plugin.getConfig().getBoolean("settings.allow-block-break", false);
+                if (!allow) {
+                    blocks.clear();
+                } else {
+                    for (Block b : blocks) {
+                        instance.getRollbackManager().recordChange(b.getLocation(), b.getBlockData());
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
+        if (player.getGameMode() == org.bukkit.GameMode.SPECTATOR) {
+            event.setCancelled(true);
+            return;
+        }
+
         Optional<DungeonInstance> instOpt = plugin.getDungeonManager().getInstance(player);
         if (instOpt.isEmpty()) return;
 

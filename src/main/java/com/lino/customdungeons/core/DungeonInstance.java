@@ -43,6 +43,7 @@ public class DungeonInstance {
     private int secondsRemaining;
     private BukkitTask tickerTask;
     private BukkitTask countdownTask;
+    private BukkitTask cleanupTask;
 
     public DungeonInstance(CustomDungeons plugin, Dungeon dungeon, List<Player> players) {
         this.plugin = plugin;
@@ -275,7 +276,7 @@ public class DungeonInstance {
             }
         }
 
-        Bukkit.getScheduler().runTaskLater(plugin, this::cleanup, 100L);
+        this.cleanupTask = Bukkit.getScheduler().runTaskLater(plugin, this::cleanup, 100L);
     }
 
     public void fail(String reason) {
@@ -291,10 +292,14 @@ public class DungeonInstance {
             }
         }
 
-        Bukkit.getScheduler().runTaskLater(plugin, this::cleanup, 100L);
+        this.cleanupTask = Bukkit.getScheduler().runTaskLater(plugin, this::cleanup, 100L);
     }
 
     public void cleanup() {
+        if (this.state == DungeonState.RESETTING) {
+            return;
+        }
+        boolean wasCompleted = (this.state == DungeonState.COMPLETED);
         this.state = DungeonState.RESETTING;
         stopAllTasks();
         Location exit = dungeon.getExitLocation() != null ? dungeon.getExitLocation() : Bukkit.getWorlds().get(0).getSpawnLocation();
@@ -311,7 +316,7 @@ public class DungeonInstance {
                 p.teleport(exit);
                 p.setGameMode(GameMode.SURVIVAL);
 
-                if (state == DungeonState.COMPLETED) {
+                if (wasCompleted) {
                     if (dungeon.getRewardExperience() > 0) {
                         p.giveExp(dungeon.getRewardExperience());
                     }
@@ -368,6 +373,10 @@ public class DungeonInstance {
             countdownTask.cancel();
             countdownTask = null;
         }
+        if (cleanupTask != null) {
+            cleanupTask.cancel();
+            cleanupTask = null;
+        }
     }
 
     public void trackEntity(LivingEntity entity) {
@@ -421,5 +430,9 @@ public class DungeonInstance {
 
     public int getLives(Player player) {
         return playerLives.getOrDefault(player.getUniqueId(), 0);
+    }
+
+    public int getCurrentStageIndex() {
+        return currentStageIndex;
     }
 }

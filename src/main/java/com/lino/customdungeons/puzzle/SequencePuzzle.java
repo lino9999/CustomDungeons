@@ -21,6 +21,7 @@ public class SequencePuzzle extends Puzzle {
     @Override
     public void onInteract(Player player, Location clickedLocation, DungeonInstance instance) {
         if (solved) return;
+        if (!targetSequence.contains(clickedLocation)) return;
         int nextIndex = currentProgress.size();
         if (nextIndex < targetSequence.size() && targetSequence.get(nextIndex).equals(clickedLocation)) {
             currentProgress.add(clickedLocation);
